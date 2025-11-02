@@ -290,7 +290,7 @@ La simulación termina cuando:
 ### Error: "command not found"
 Asegúrate de estar en el directorio correcto:
 ```bash
-cd /Users/tiosaturno/Desktop/Universidad/SO/Tarea2
+cd Directorio/usado/donde/esta/tuarchivo
 ```
 
 ### Error: "Failed to open config file"

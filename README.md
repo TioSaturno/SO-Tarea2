@@ -22,7 +22,7 @@ Este proyecto es una simulación de combate en tiempo real donde múltiples hér
 - Cada monstruo corre en su propio **thread**
 - Se detienen cuando mueren o cuando todos los héroes completan su camino
 
-### Mecánicas de Juego
+### Herramientas usadas
 - **Distancia Manhattan**: Usada para el movimiento (monstruos se mueven un paso a la vez)
 - **Distancia Euclidiana**: Usada para determinar el héroe más cercano
 - **Sincronización con Mutex**: Para evitar condiciones de carrera en combate y movimiento

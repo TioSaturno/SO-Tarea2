@@ -163,7 +163,26 @@ void *Mounstro(void *arg){
          pthread_exit(NULL);
          break;
     }
+    
+    // Verificar si quedan héroes activos en el juego
+    pthread_mutex_lock(&grid_mutex);
+    bool any_hero_active = false;
+    for(int i=0; i<hero_count; i++){
+        if(heroes[i].isAlive && heroes[i].currentPathIndex < heroes[i].PathLength) {
+            any_hero_active = true;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&grid_mutex);
+    
+    // Si no quedan héroes activos, detener el monstruo
+    if(!any_hero_active){
+        printf("Monstruo %d se detiene (no hay héroes activos).\n", monster_id);
+        break;
+    }
+    
     Heroe *closest_hero = NULL;
+    int closest_hero_id = -1;
     double min_dist = INFINITY;
     pthread_mutex_lock(&grid_mutex);
     for(int i=0; i<hero_count; i++){
@@ -172,6 +191,7 @@ void *Mounstro(void *arg){
         if(dist < min_dist){
             min_dist = dist;
             closest_hero = &heroes[i];
+            closest_hero_id = i;
         }
     }
     pthread_mutex_unlock(&grid_mutex);
@@ -184,7 +204,7 @@ void *Mounstro(void *arg){
         pthread_mutex_lock(&grid_mutex);
         m->Alerted = true;
         pthread_mutex_unlock(&grid_mutex);
-        printf("Monstruo %d ha sido alertado al ver al Heroe cercano.\n", monster_id);
+        printf("Monstruo %d ha sido alertado al ver al Heroe %d cercano.\n", monster_id, closest_hero_id);
         alert_nearby_monsters(monster_id);
 
     }
@@ -196,12 +216,12 @@ void *Mounstro(void *arg){
             
             if(closest_hero->isAlive){
                 closest_hero->HP -= m->ATCK_DAMAGE;
-                printf("Monstruo %d ataca Heroe (-%d HP). HP Heroe: %d\n", monster_id, m->ATCK_DAMAGE, closest_hero->HP);
+                printf("Monstruo %d ataca Heroe %d (-%d HP). HP Heroe: %d\n", monster_id, closest_hero_id, m->ATCK_DAMAGE, closest_hero->HP);
                 
                 
                 if(closest_hero->HP <= 0){
                     closest_hero->isAlive = false;
-                    printf("Heroe ha sido derrotado por Monstruo %d\n", monster_id);
+                    printf("Heroe %d ha sido derrotado por Monstruo %d\n", closest_hero_id, monster_id);
                 }
             }
             pthread_mutex_unlock(&combat_mutex);
@@ -305,8 +325,29 @@ void ParseConfig(const char *filename){
             sscanf(line_buffer + 11, "%d %d", &heroes[0].position.x, &heroes[0].position.y);
         }
         else if (strncmp(line_buffer, "HERO_PATH", 9) == 0 && hero_count == 1) {
-            // Contar y parsear path
-            char *ptr = line_buffer;
+            // Acumular todas las líneas del path
+            char full_path[4096] = "";
+            strcat(full_path, line_buffer);
+            
+            // Leer líneas adicionales que contienen coordenadas
+            long current_pos = ftell(file);
+            while (fgets(line_buffer, sizeof(line_buffer), file)) {
+                // Si la línea empieza con '(' o espacio seguido de '(', es parte del path
+                char *trimmed = line_buffer;
+                while (*trimmed == ' ' || *trimmed == '\t') trimmed++;
+                
+                if (*trimmed == '(') {
+                    strcat(full_path, line_buffer);
+                    current_pos = ftell(file);
+                } else {
+                    // No es parte del path, retroceder
+                    fseek(file, current_pos, SEEK_SET);
+                    break;
+                }
+            }
+            
+            // Contar y parsear path completo
+            char *ptr = full_path;
             int path_count = 0;
             while ((ptr = strchr(ptr, '(')) != NULL) {
                 path_count++;
@@ -316,7 +357,7 @@ void ParseConfig(const char *filename){
             heroes[0].PathLength = path_count;
             heroes[0].Path = (Point *)malloc(sizeof(Point) * path_count);
             
-            ptr = line_buffer;
+            ptr = full_path;
             for (int j = 0; j < path_count; j++) {
                 ptr = strchr(ptr, '(');
                 if (ptr) {
@@ -356,7 +397,29 @@ void ParseConfig(const char *filename){
         else if (strstr(line_buffer, "HERO_") && strstr(line_buffer, "_PATH")) {
             int hero_num;
             if (sscanf(line_buffer, "HERO_%d_PATH", &hero_num) == 1) {
-                char *ptr = line_buffer;
+                // Acumular todas las líneas del path
+                char full_path[4096] = "";
+                strcat(full_path, line_buffer);
+                
+                // Leer líneas adicionales que contienen coordenadas
+                long current_pos = ftell(file);
+                while (fgets(line_buffer, sizeof(line_buffer), file)) {
+                    // Si la línea empieza con '(' o espacio seguido de '(', es parte del path
+                    char *trimmed = line_buffer;
+                    while (*trimmed == ' ' || *trimmed == '\t') trimmed++;
+                    
+                    if (*trimmed == '(') {
+                        strcat(full_path, line_buffer);
+                        current_pos = ftell(file);
+                    } else {
+                        // No es parte del path, retroceder
+                        fseek(file, current_pos, SEEK_SET);
+                        break;
+                    }
+                }
+                
+                // Contar y parsear path completo
+                char *ptr = full_path;
                 int path_count = 0;
                 while ((ptr = strchr(ptr, '(')) != NULL) {
                     path_count++;
@@ -366,7 +429,7 @@ void ParseConfig(const char *filename){
                 heroes[hero_num - 1].PathLength = path_count;
                 heroes[hero_num - 1].Path = (Point *)malloc(sizeof(Point) * path_count);
                 
-                ptr = line_buffer;
+                ptr = full_path;
                 for (int j = 0; j < path_count; j++) {
                     ptr = strchr(ptr, '(');
                     if (ptr) {

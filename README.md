@@ -1,4 +1,4 @@
-# Simulación de Combate Doom - Sistema Operativo Tarea 2
+# Simulación de Combate Doom - Sistema Operativos Tarea 2
 
 ## Descripción
 
@@ -90,6 +90,8 @@ MONSTER_1_HP <puntos_vida>
 ...
 ```
 
+
+
 ## Compilación
 
 ### Opción 1: Compilación básica
@@ -110,6 +112,7 @@ gcc -Wall -Wextra -g3 Doom.c -o doom -lpthread -lm
 - `-lm`: Enlaza la biblioteca matemática
 - `-o doom`: Especifica el nombre del ejecutable
 
+
 ## Ejecución
 
 ### Sintaxis básica
@@ -128,6 +131,11 @@ gcc -Wall -Wextra -g3 Doom.c -o doom -lpthread -lm
 # Ejecutar con ejemplo 3 (2 héroes, 12 monstruos)
 ./doom ejemplo3.txt
 ```
+### Para agregar otras pruebas
+si usted desea probar el proyecto con un archivo de configuración distinto debe cumplir lo siguiente:
+- El archivo debe tener el mismo formato que tienen los 3 ejemplos dejados
+- Debe asegurarse que este archivo esté en el mismo directorio en el cual están todos los demás
+- Al momento de realizar la ejecución, debe escribir el nombre del archivo seguido de este como se mostró anteriormente
 
 ## Salida de la Simulación
 
@@ -300,19 +308,4 @@ gcc -o doom Doom.c -pthread -lm
 ### Deadlock o programa no termina
 Esto puede ocurrir si hay problemas de sincronización. Ejecuta con `Ctrl+C` para detener y revisa los logs.
 
-## Mejoras Futuras
 
-- [ ] Visualización gráfica del tablero
-- [ ] Interfaz web para ver la simulación en tiempo real
-- [ ] Estadísticas detalladas al final de la simulación
-- [ ] Soporte para diferentes tipos de monstruos
-- [ ] Sistema de experiencia y niveles para héroes
-- [ ] Guardado y reproducción de simulaciones
-
-## Autor
-
-Cristóbal - Universidad - Sistemas Operativos - Tarea 2
-
-## Licencia
-
-Este proyecto es parte de una tarea académica.
